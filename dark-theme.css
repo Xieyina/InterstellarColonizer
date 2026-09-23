@@ -1,0 +1,172 @@
+/* ===== 深色主题 ===== */
+.root {
+    -fx-background-color: #1a1a2e;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-text-fill: #ffffff;
+}
+
+/* ===== 滚动条 ===== */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane .scroll-bar:horizontal,
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #3a3a5a;
+    -fx-background-radius: 8;
+}
+
+.scroll-pane .scroll-bar .thumb:hover {
+    -fx-background-color: #5a5a7a;
+}
+
+/* ===== 按钮 ===== */
+.button {
+    -fx-background-color: #0f3460;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s;
+}
+
+.button:hover {
+    -fx-background-color: #1a4a7a;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.button:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* ===== 建筑卡片 ===== */
+.building-card {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 8, 0, 0, 2);
+    -fx-transition: all 0.3s;
+    -fx-cursor: hand;
+}
+
+.building-card:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-border-color: #e94560;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.building-card.selected {
+    -fx-border-color: #e94560;
+    -fx-border-width: 3;
+}
+
+.building-card.disabled {
+    -fx-opacity: 0.4;
+}
+
+/* ===== 资源显示 ===== */
+.resource-display {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 8;
+    -fx-padding: 4 12 4 12;
+    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-radius: 8;
+}
+
+.resource-display .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* ===== 弹窗 ===== */
+.dialog-pane {
+    -fx-background-color: #1a1a2e;
+    -fx-text-fill: white;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #16213e;
+}
+
+.dialog-pane .content {
+    -fx-background-color: #1a1a2e;
+}
+
+/* ===== 标签页 ===== */
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #0f3460;
+    -fx-text-fill: white;
+    -fx-background-radius: 6 6 0 0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #e94560;
+}
+
+/* ===== 进度条 ===== */
+.progress-bar {
+    -fx-background-color: #2a2a4a;
+    -fx-background-radius: 6;
+}
+
+.progress-bar .bar {
+    -fx-background-color: linear-gradient(to right, #e94560, #ff6b6b);
+    -fx-background-radius: 6;
+}
+
+/* ===== 科技树卡片 ===== */
+.tech-card {
+    -fx-background-color: #2a2a4a;
+    -fx-background-radius: 8;
+    -fx-border-color: #666;
+    -fx-border-radius: 8;
+    -fx-border-width: 2;
+    -fx-padding: 10;
+    -fx-transition: all 0.3s;
+}
+
+.tech-card.researched {
+    -fx-border-color: #4CAF50;
+}
+
+.tech-card.available {
+    -fx-border-color: #ffd700;
+    -fx-cursor: hand;
+}
+
+.tech-card.available:hover {
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.tech-card.locked {
+    -fx-border-color: #666;
+    -fx-opacity: 0.5;
+}
+
+/* ===== 工具提示 ===== */
+.tooltip {
+    -fx-background-color: #16213e;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e94560;
+    -fx-border-radius: 8;
+    -fx-padding: 10;
+}
