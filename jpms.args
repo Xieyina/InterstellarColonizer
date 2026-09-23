@@ -1,0 +1,4 @@
+--patch-module
+tfgirls.project.javarts=_
+--add-reads
+tfgirls.project.javarts=ALL-UNNAMED

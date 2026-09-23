@@ -1,0 +1,37 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+
+start
+note right
+  昼夜分支见 PRD 7.1.1，当前代码未实现（待对齐）
+end note
+:新的游戏日结算开始;
+if (事件弹窗打开中 eventDialogShowing?) then (是)
+    :本轮跳过（暂停每日推进）;
+    stop
+else (否)
+    :buildings.handle()
+    各建筑产出/消耗结算（含资源不足自动阻断）;
+    :RecipeRegistry.processAll()
+    已解锁配方转化;
+    if (!eventDialogShowing && !gameOver?) then (是)
+        :eventManager.checkAndTrigger()
+        随机事件检测（可能弹窗）;
+    endif
+    :dayCounter++;
+    if (dayCounter % 10 == 0?) then (是)
+        :recordHistory()
+        记录资源/人口/建筑快照;
+    endif
+    :updateFatigue()
+    全体居民疲劳推进;
+    :checkFoodAndApplyHunger()
+    饥饿 Debuff 判定;
+    :notifyListener()
+    刷新界面;
+endif
+note right
+  若结算抛出 NotEnoughResources：notifyErrorListener(ex) 顶部报错，终止本轮其余步骤
+end note
+stop
+@enduml

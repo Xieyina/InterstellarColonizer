@@ -1,0 +1,52 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+package "View（JavaFX 界面层）" {
+    [MainView] as MV
+    [MapView] as MAP
+    [CustomMenu] as CM
+    [TechView] as TV
+    [ChartView] as CV
+    [SaveManager] as SM
+    [FxGameClock] as FC
+    [FxGameUiBridge] as FU
+}
+
+package "Controller（命令层）" {
+    [BagOfCommands] as BOC
+    [Controller] as CTRL
+    [Command] as CMD
+    [AddBuildingCommand 等 15 个命令] as CMDS
+}
+
+package "Model（业务逻辑层）" {
+    [GameManager] as GM
+    [BuildingManager] as BM
+    [ResourceManager] as RM
+    [TechTree] as TT
+    [EventManager] as EM
+}
+
+package "Model.Port（解耦端口）" {
+    interface "GameClock" as GC
+    interface "GameUiBridge" as GU
+}
+
+' 依赖方向：View → Controller → Model（单向，无反向依赖）
+MV --> BOC : 点击操作入队
+BOC --> CMDS : 后台线程依次执行
+CMDS --> GM : 调用业务方法
+CTRL --> GM
+' Model 只依赖自己定义的端口接口，不依赖 JavaFX
+GM --> GC : 注入
+GM --> GU : 注入
+' View 层提供端口实现
+FC ..|> GC : 实现
+FU ..|> GU : 实现
+
+note right of GC
+  Model 层零 javafx import、
+  零 View import（T-06/T-07 改造）
+end note
+@enduml

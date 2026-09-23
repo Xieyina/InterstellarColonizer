@@ -1,0 +1,19 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+
+start
+:浏览建筑卡片（Buildings Tab）;
+:选择建筑卡片;
+:点击地图地块;
+if (地块已有建筑?) then (是)
+    :拒绝放置，顶部报错;
+    stop
+else (否)
+    if (资源充足?) then (是)
+        :扣除资源，生成建筑（进入施工状态）;
+    else (否)
+        :顶部报错，不生成建筑;
+    endif
+endif
+stop
+@enduml

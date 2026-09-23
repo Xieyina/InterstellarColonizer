@@ -1,0 +1,14 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+
+[*] --> 施工 : 放置建筑
+施工 --> 运行 : 施工天数倒计时归零（自动）
+运行 --> Boosted : 玩家消耗 1 工具（持续 5 个游戏日）
+运行 --> 阻断 : 玩家手动暂停 / 资源不足自动阻断
+运行 --> 损坏 : 每日 1/1000 概率（rand.nextInt(1000)==0）
+Boosted --> 运行 : 计时结束且 3/4 概率（rand.nextInt(4)!=0）
+Boosted --> 损坏 : 计时结束且 1/4 概率（rand.nextInt(4)==0）
+Boosted --> 阻断 : 玩家手动暂停（Boost 倒计时继续）
+阻断 --> 运行 : 玩家手动恢复（runBuilding）
+损坏 --> 运行 : 玩家修复（消耗 1 工具）
+@enduml

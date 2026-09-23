@@ -1,0 +1,26 @@
+@startuml
+left to right direction
+skinparam defaultFontName "Microsoft YaHei"
+
+actor "玩家" as Player
+actor "系统" as System
+
+rectangle "星际殖民者（Interstellar Colonizer）" {
+    usecase "FR-01 游戏初始化与时间流逝" as UC01
+    usecase "FR-02 建筑查看、放置、删除、详情弹窗" as UC02
+    usecase "FR-03 居民与工人分配、移除、容量校验" as UC03
+    usecase "FR-04 资源产出、消耗动态计算" as UC04
+    usecase "FR-05 食物消耗、居民死亡连锁逻辑" as UC05
+    usecase "FR-06 建筑五状态流转、Boost 强化机制" as UC06
+    usecase "FR-07 非法操作拦截、顶部错误弹窗" as UC07
+}
+
+Player --> UC01 : 启动游戏
+Player --> UC02
+Player --> UC03
+Player --> UC06
+Player --> UC07
+System --> UC01 : 自动推进时间
+System --> UC04 : 每日结算
+System --> UC05 : 食物结算与死亡判定
+@enduml
