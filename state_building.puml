@@ -1,0 +1,22 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title 建筑五状态机（Model/Building/State/）
+
+[*] --> CONSTRUCTION : 放置建筑（BasicBuilding 构造）
+CONSTRUCTION --> RUNNING : 施工倒计时归零（handleState 自动）
+RUNNING --> BLOCKED : 玩家暂停 / 资源不足自动阻断
+BLOCKED --> RUNNING : 玩家恢复（runBuilding）
+RUNNING --> BOOSTED : 玩家 Boost（消耗 1 工具，持续 5 个游戏日）
+BOOSTED --> BLOCKED : 玩家暂停（Boost 倒计时继续）
+BOOSTED --> RUNNING : 倒计时归零且 3/4 概率（rand.nextInt(4)!=0）
+BOOSTED --> BROKEN : 倒计时归零且 1/4 概率（rand.nextInt(4)==0）
+RUNNING --> BROKEN : 每日 1/1000 概率（rand.nextInt(1000)==0）
+BROKEN --> RUNNING : 玩家修复（repairBuilding，消耗 1 工具）
+
+note right of BOOSTED
+  Boost 期间产出翻倍、消耗不变
+  （ProductionBuilding.handle）
+end note
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title 分配工人时序
+
+actor 玩家 as P
+participant "PeopleFooter" as PF
+participant "BagOfCommands" as BOC
+participant "AddWorkerIntoCommand" as CMD
+participant "GameManager" as GM
+participant "Building" as B
+participant "MainView" as MV
+
+P -> PF : 点击「分配工人」
+PF -> BOC : addCommand(AddWorkerIntoCommand(building))
+BOC -> CMD : execute(model, controller)（后台线程）
+CMD -> GM : assignWorkerTo(building)
+GM -> GM : findUnemployed()（无空闲 → 顶部报错）
+GM -> B : addWorker(people)（校验容量）
+B -> GM : 超过容量 → TooManyWorkers → 顶部报错
+GM -> GM : worker.affectJobPlace(building)
+GM -> MV : notifyListener → update()
+note right of MV
+  产出折算 = Σ工人效率 / 最大工人数
+  在 BuildingManager.handle() 中生效
+end note
+@enduml

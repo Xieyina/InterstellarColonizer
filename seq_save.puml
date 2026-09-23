@@ -1,0 +1,32 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title 存档 / 读档时序
+
+actor 玩家 as P
+participant "CustomMenu" as CM
+participant "SaveManager" as SM
+participant "GameManager" as GM
+participant "ObjectMapper\n(Jackson)" as JM
+participant "文件 saves/<slot>.json" as F
+
+== 保存 ==
+P -> CM : 点击「💾 保存」
+CM -> SM : save(model, slotName)
+SM -> GM : getDay / getPopulation / getBuildings.size / getTechTree
+SM -> SM : 组装 SaveData\n（day/resources/population/buildingCount/\nresearchedTechs/unlockedRecipes）
+SM -> JM : writerWithDefaultPrettyPrinter().writeValue
+JM -> F : 写入 JSON
+note right of F
+  已知局限：SaveData 只存 buildingCount，
+  不保存建筑种类与地图坐标，
+  读档后建筑布局无法还原
+end note
+
+== 读档 ==
+P -> CM : 点击「📂 加载」选择存档
+CM -> SM : load(model, slotName)
+JM -> SM : readValue(SaveData.class)
+SM -> GM : setDay / setResourceAmount / killPeople / addPopulation\n/ forceResearch / unlockRecipe / notifyListener
+@enduml

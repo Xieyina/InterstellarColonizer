@@ -1,0 +1,35 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title 每日结算时序（每 600 秒一个游戏日）
+
+participant "FxGameClock" as CLK
+participant "GameManager" as GM
+participant "BuildingManager" as BM
+participant "ResourceManager" as RM
+participant "RecipeRegistry" as RR
+participant "EventManager" as EM
+participant "People" as PP
+participant "GameUiBridge" as UI
+participant "MainView" as MV
+
+CLK -> CLK : Timeline 到点（FX 线程）
+CLK -> GM : onTick（提交到 daily-settlement 线程）
+GM -> GM : eventDialogShowing ? 是 → 本轮跳过
+GM -> BM : handle()
+BM -> BM : 各建筑 handle() 收集产出/消耗\n按工人效率 × 等级 × 科技 × 饥饿倍率
+BM -> RM : addResource / removeResource
+RM --> BM : NotEnoughResources → 自动阻断消耗建筑
+GM -> RR : processAll()
+RR -> RM : 已解锁配方转化
+GM -> EM : checkAndTrigger()（无弹窗且未结束）
+EM --> GM : 选中事件 → setPendingEvent
+GM -> UI : showEvent（回到 FX 线程弹窗）
+GM -> GM : dayCounter++，每 10 天 recordHistory()
+GM -> PP : updateFatigue() → advanceDay()
+GM -> GM : checkFoodAndApplyHunger()（饥饿 Debuff）
+GM -> UI : showWarning（食物归零时，按日节流）
+GM -> UI : dispatch(notifyListener)
+UI -> MV : update() 刷新资源栏/地图/图表
+@enduml

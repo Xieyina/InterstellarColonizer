@@ -1,0 +1,32 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title 建筑放置时序（命令模式）
+
+actor 玩家 as P
+participant "MapView" as MAP
+participant "BagOfCommands" as BOC
+participant "AddBuildingCommand" as CMD
+participant "GameManager" as GM
+participant "TechTree" as TT
+participant "BuildingBuilder" as BB
+participant "BuildingManager" as BM
+participant "ResourceManager" as RM
+
+P -> MAP : 点击地图地格
+MAP -> BOC : addCommand(AddBuildingCommand(position))
+BOC -> CMD : execute(model, controller)（后台线程）
+CMD -> GM : addBuilding(selectedBuilding, position)
+GM -> TT : isBuildingUnlocked(type)?（非初始建筑需科技）
+TT --> GM : 未解锁 → 顶部报错，终止
+GM -> BB : build(type, position)（装饰器组合功能）
+GM -> MAP : isAreaFree(position, size)
+GM -> BM : addBuilding(building)
+BM -> RM : areAvailable(cost) → 扣资源
+GM -> MAP : construct（地格置为占用）
+note right of BB
+  BasicBuilding 构造时进入 ConstructionState（施工状态）
+end note
+GM -> GM : notifyListener → View 刷新
+@enduml
