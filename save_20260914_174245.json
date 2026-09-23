@@ -1,0 +1,19 @@
+{
+  "day" : 0,
+  "resources" : {
+    "STEEL" : 0,
+    "WOOD" : 100,
+    "CEMENT" : 0,
+    "COAL" : 0,
+    "LUMBER" : 0,
+    "IRON" : 0,
+    "STONE" : 100,
+    "FOOD" : 25,
+    "TOOLS" : 5
+  },
+  "population" : 0,
+  "buildingCount" : 0,
+  "researchedTechs" : [ ],
+  "unlockedRecipes" : [ ],
+  "saveDate" : "2026-09-14 17:42:45"
+}

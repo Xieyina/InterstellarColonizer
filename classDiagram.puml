@@ -1,0 +1,740 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+
+package "Model" <<Frame>> {
+
+package "Building"{
+    interface Building {
+        + getName() : String
+        + getSize() : Size
+        + getCost() : HashMap<Resource, Integer>
+        + getId() : UUID
+        + getConstructionTime() : int
+        + getType() : BuildingType
+        + getPosition() : Position
+        + getFunctions() : ArrayList<BuildingFunctions>
+        + addFunction(ArrayList<BuildingFunction>)
+        + getWorkers() : List<People>
+        + getMaxWorkers() : Integer
+        + getNumberWorkers() : Integer
+        + addWorker(People) : boolean
+        + removeWorker(People) : void
+        + getInhabitants() : List<People>
+        + getMaxInhabitants() : Integer
+        + getNumberInhabitants() : Integer
+        + addInhabitant(People) : boolean
+        + removeInhabitant(People) : void
+        + getDailyProduction() : Map<ResourceType, Integer> 
+        + getDailyConsumption() : Map<ResourceType, Integer>
+        + handle() : HashMap<ResourceType,Integer>
+        + needViewUpdate() : boolean
+        + switchState(States state, int numberOfCycles) : void
+        + getState() : States
+        + getRemainingTime() : int
+
+    }
+
+    class BasicBuilding implements Building{}
+
+    class ConsumptionBuilding extends BuildingDecorator{
+        - building : Building
+        - dailyConsumption : Map<ResourceType, Integer>
+    }
+    class ProductionBuilding extends BuildingDecorator{
+        - building : Building
+        - dailyProduction : Map<ResourceType, Integer>
+    }
+    class LivingBuilding extends BuildingDecorator{
+        - inhabitants : List<People>
+        - maxInhabitants : int
+        
+    }
+    class WorkingBuilding extends BuildingDecorator{
+        - workers : List<People>
+        - maxWorkers : int
+    }
+
+    abstract class BuildingDecorator implements Building{
+        - decoratedBuilding : Building
+    }
+    note left of BuildingDecorator
+        Design Pattern Decorator
+    end note
+
+    class BuildingManager <<(S,#FF7700)Singleton>> {
+        - buildings : Set<Building>
+        + getBuildings() : Set<Building>
+        + addBuilding(Building) : void
+        + repairBuilding(Building) : void
+        + boostBuilding(Building) : void
+        + blockBuilding(Building) : void
+        + runBuilding(Building) : void
+        + removeBuilding(Building) : void
+        + exists(Building) : boolean
+        + addInhabitantInto(Building, People) : void
+        + handle() : void
+        + {static} buildingCost(BuildingType) : HashMap<ResourceType, Integer>
+        + {static} isBuildable(BuildingType) : boolean
+    }
+
+    class BuildingBuilder{
+        + build(BuildingType, Position) : Building
+    }
+
+    enum BuildingFunction{
+        WORKING
+        LIVING
+        PRODUCING
+        CONSUMING
+    }
+
+    enum BuildingType{
+        WOODENCABIN
+        HOUSE
+        APPARTMENTBUILDING
+        FARM
+        QUARRY
+        LUMBERMILL
+        CEMENTPLANT
+        STEELMILL
+        TOOLFACTORY
+        HUNTERGUILD
+    }
+}
+package "State"{
+    interface State{
+        + loop() : void
+    }
+
+    abstract class AbstractState implements State{
+        - currentState : States
+        + creation() : void
+        + running() : void
+        + broken() : void
+        + boost() : void
+        + blocked() : void
+        + getStates() : States
+    }
+
+    class Automata{
+        - currentState : States
+        + setCurrentState(AbstractState currentState) : void
+        + GetCurrentState() : AbstractState
+        + getCurrentStateName() : States
+    }
+    class BlockedState extends AbstractState{
+        - automata : Automata
+        + running() : void
+    }
+    class BoostState extends AbstractState{
+        - automata : Automata
+        + running() : void
+        + broken() : void
+        + blocked() : void
+    }
+    class BrokenState extends AbstractState{
+        - automata : Automata
+        + running() : void
+    }
+    class ConstructionState extends AbstractState{
+        - automata : Automata
+        + running() : void
+    }
+    class RunningState extends AbstractState{
+        - automata : Automata
+        + boost() : void
+        + broken() : void
+        + blocked() : void
+    }
+
+    enum States{
+        CONSTRUCTION
+        RUNNING
+        BROKEN
+        BOOSTED
+        BLOCKED
+    }
+}
+
+    class People{
+        - {static} FATIGUE_PER_DAY : int = 25
+        - {static} FATIGUE_RECOVERY_PER_DAY : int = 25
+        - {static} FATIGUE_MAX : int = 100
+        - {static} FATIGUE_THRESHOLD : int = 50
+        - {static} FATIGUED_MOVEMENT_SPEED : double = 0.5
+        - {static} FATIGUED_EFFICIENCY : double = 0.5
+        - id : UUID
+        - house : Building
+        - job : Building
+        - consecutiveWorkDays : int
+        - fatigue : int
+        - movementSpeed : double
+        + getHouse() : Building
+        + getJobPlace() : Building
+        + getId() : UUID
+        + affectHouse(Building) : void
+        + affectJobPlace(Building) : void
+        + advanceDay() : void
+        + isFatigued() : boolean
+        + getFatigue() : int
+        + getConsecutiveWorkDays() : int
+        + getMovementSpeed() : double
+        + getEfficiency() : double
+    }
+    class Map <<(S,#FF7700)Singleton>>{
+        - size : Size
+        - tiles : MapTileStatus[][]
+        + getTileStatus(Position) : MapTilestatus
+        + isAreaFree(Position, Size) : Boolean
+        + getSize() : Size
+        + getTiles() : MapTileStatus[][]
+        + construct(Position, Size) : void
+        + destruct(Position, Size) : void
+        + getInstace() : Map
+    }
+
+    enum MapTileStatus {
+        FREE
+        OCCUPIED
+    }
+    class GameManager <<(S,#FF7700)Singleton>> implements Subject{
+        - {static} TIME_SCALE : int = 600
+        - {static} DAY_DURATION_MS : long = 600000
+        - {static} HUNGER_EFFICIENCY : double = 0.5
+        - {static} HUNGER_POPULATION_LOSS_PER_DAY : int = 1
+        - instance : GameManager
+        - worldInhabitants : List<People>
+        - map : Map
+        - buildings : BuildingManager
+        - resources : ResourceManager
+        - listener : Set<Runnable>
+        - currentException : Exception
+        - errorListener : Runnable
+        - {static} clock : GameClock
+        - {static} ui : GameUiBridge
+        - b : BuildingBuilder
+        - techTree : TechTree
+        - eventManager : EventManager
+        - pendingEvent : GameEvent
+        - pendingEventContext : Object
+        - history : List<HistoricalData>
+        - dayCounter : int
+        - eventDialogShowing : boolean
+        - gameOver : boolean
+        - hungerActive : boolean
+        - productionEfficiency : double
+        - hungerWarningDay : int
+        + {static} bootstrap(GameClock, GameUiBridge) : void
+        + loop() : void
+        + getInstance() : GameManager
+        + addBuilding(BuildingType, Position) : void
+        + removeBuilding(Building) : void
+        + repairBuilding(Building) : void
+        + boostBuilding(Building) : void
+        + blockBuilding(Building) : void
+        + runBuilding(Building) : void
+        + createInhabitantInto(Building) : void
+        + deleteInhabitantFrom(Building) : void
+        + assignWorkerTo(Building) : void
+        + findUnemployed() : People
+        + deleteWorkerFrom(Building) : void
+        + killPeople(int count) : void
+        + getBuildings() : Set<Building>
+        + deliverPreyToGuild(int) : Building
+        + researchTech(String) : void
+        + getTechTree() : TechTree
+        + setPendingEvent(GameEvent) : void
+        + showEventDialog(GameEvent) : void
+        + getHistory() : List<HistoricalData>
+        + getDay() : int
+        + isGameOver() : boolean
+        + getPopulation() : int
+        + setDay(int) : void
+        + addPopulation(int) : int
+        + isHungerActive() : boolean
+        + getProductionEfficiency() : double
+    }
+    note left of GameManager
+        Design Pattern Singleton
+        Design Pattern Composite
+        Design Pattern Observer (Subject)
+    end note
+
+    class Size{
+        - width : Integer
+        - height : Integer
+        + getSize() : [Integer, Integer]
+        + getWidth() : Integer
+        + getHeight() : Integer
+    }
+
+    interface Subject{
+        + addListener(Runnable) : void
+        + addErrorListener(Runnable) : void
+        + notifyListener() : void
+        + notifyErrorListener(Exception) : void
+    }
+
+    class HistoricalData{
+        - day : int
+        - resources : Map<ResourceType, Integer>
+        - buildingCount : int
+        - population : int
+        + getDay() : int
+        + getResources() : Map<ResourceType, Integer>
+        + getBuildingCount() : int
+        + getPopulation() : int
+    }
+
+    package "Port"{
+        interface GameClock{
+            + start(long, Runnable) : void
+            + stop() : void
+        }
+        interface GameUiBridge{
+            + dispatch(Runnable) : void
+            + showWarning(String, String, String) : void
+            + showVictory() : void
+            + showEvent(GameEvent, Runnable) : void
+        }
+    }
+    class Position{
+        - x : Integer
+        - y : Integer
+        + getX() : Integer
+        + getY() : Integer
+    }
+
+
+package "Resource"{
+    interface Resource {
+        + getType() : RessourceType
+        + getQuantity() : Integer
+        + addResources(quantity : Integer)
+        + removeResources(quantity : Integer)
+
+    }
+    abstract class AbstractResource implements Resource{
+        - Quantity : Integer
+    }
+    class Food extends AbstractResource{
+
+    }
+    class Wood extends AbstractResource{
+
+    }
+    class Stone extends AbstractResource{
+
+    }
+    class Coal extends AbstractResource{
+
+    }
+    class Iron extends AbstractResource{
+
+    }
+    class Steel extends AbstractResource{
+
+    }
+    class Cement extends AbstractResource{
+
+    }
+    class Lumber extends AbstractResource{
+
+    }
+    class Tools extends AbstractResource{
+
+    }
+    enum ResourceType{
+        FOOD
+        WOOD
+        STONE
+        COAL
+        IRON
+        STEEL
+        CEMENT
+        LUMBER
+        TOOLS
+    }
+
+    class ResourceManager <<(S,#FF7700)Singleton>>{
+        - resources : HashMap<ResourceType,ResourceDecorator>
+        - instance : ResourceManager
+        + addResources(ResourceType type, Integer quantity)
+        + removeResources(ResourceType type, Integer quantity)
+        + getInstance() : ResourceManager
+        + areAvailable(HashMap<ResourceType, Integer>) : boolean
+        + getResources() : HashMap<ResourceType, Integer>
+    }
+    note left of ResourceManager
+        Design Pattern Singleton
+    end note
+
+    class RecipeRegistry <<(S,#FF7700)Singleton>>{
+        - instance : RecipeRegistry
+        - recipes : Map<String, ResourceConverter>
+        - unlockedRecipes : List<String>
+        + {static} getInstance() : RecipeRegistry
+        + registerRecipe(ResourceConverter) : void
+        + unlockRecipe(String) : void
+        + processAll() : void
+        + isRecipeUnlocked(String) : boolean
+        + getUnlockedRecipes() : List<String>
+    }
+    class ResourceConverter{
+        - input1 : ResourceType
+        - input2 : ResourceType
+        - input1Amount : int
+        - input2Amount : int
+        - output : ResourceType
+        - outputAmount : int
+        - recipeId : String
+        + canConvert(ResourceManager) : boolean
+        + convert() : void
+        + getRecipeId() : String
+        + getOutput() : ResourceType
+        + getOutputAmount() : int
+    }
+    RecipeRegistry o-- ResourceConverter : recipes
+}
+
+package "Tech"{
+    class TechTree{
+        - nodes : Map<String, TechNode>
+        - researchedTechs : List<String>
+        - unlockedBuildings : List<BuildingType>
+        - productionMultipliers : Map<ResourceType, Double>
+        - consumptionMultipliers : Map<ResourceType, Double>
+        - globalProductionMultiplier : double
+        + canResearch(String) : boolean
+        + isResearched(String) : boolean
+        + research(String) : void
+        + forceResearch(String) : void
+        + getAvailableTechs() : List<TechNode>
+        + getProductionMultiplier(ResourceType) : double
+        + getConsumptionMultiplier(ResourceType) : double
+        + isBuildingUnlocked(BuildingType) : boolean
+        + getNodes() : Map<String, TechNode>
+        + getResearchedTechs() : List<String>
+    }
+    class TechNode{
+        - id : String
+        - name : String
+        - description : String
+        - prerequisites : List<String>
+        - cost : Map<ResourceType, Integer>
+        - effect : TechEffect
+        - researched : boolean
+        + getId() : String
+        + getName() : String
+        + getDescription() : String
+        + getPrerequisites() : List<String>
+        + getCost() : Map<ResourceType, Integer>
+        + getEffect() : TechEffect
+        + isResearched() : boolean
+        + setResearched(boolean) : void
+    }
+    class TechEffect{
+        - type : EffectType
+        - target : Object
+        - multiplier : double
+        - amount : int
+        + {static} unlockBuilding(BuildingType) : TechEffect
+        + {static} boostProduction(ResourceType, double) : TechEffect
+        + {static} reduceConsumption(ResourceType, double) : TechEffect
+        + {static} unlockRecipe(String) : TechEffect
+        + {static} increaseCapacity(int) : TechEffect
+        + {static} boostAll(double) : TechEffect
+        + getType() : EffectType
+        + getTarget() : Object
+        + getMultiplier() : double
+        + getAmount() : int
+    }
+    enum EffectType{
+        UNLOCK_BUILDING
+        BOOST_PRODUCTION
+        REDUCE_CONSUMPTION
+        UNLOCK_RECIPE
+        INCREASE_CAPACITY
+        BOOST_ALL
+    }
+    TechTree *-- TechNode : nodes
+    TechNode o-- TechEffect : effect
+    TechEffect ..> EffectType : type
+}
+
+package "Event"{
+    interface GameEvent{
+        + trigger(GameManager) : void
+        + getTitle() : String
+        + getDescription() : String
+        + getOptions() : List<EventOption>
+        + canTrigger(GameManager) : boolean
+    }
+    class EventOption{
+        - label : String
+        - action : Runnable
+        - resultDescription : String
+        - resultSupplier : Supplier<String>
+        + getLabel() : String
+        + getAction() : Runnable
+        + getResultDescription() : String
+    }
+    class EventManager{
+        - events : List<GameEvent>
+        - random : Random
+        - turnCounter : int
+        - nextEventTurn : int
+        + checkAndTrigger(GameManager) : void
+    }
+    class AlienAttackEvent implements GameEvent{}
+    class AlienTraderEvent implements GameEvent{}
+    class AncientRuinsEvent implements GameEvent{}
+    class CosmicBountyEvent implements GameEvent{}
+    class DiplomaticMissionEvent implements GameEvent{}
+    class MeteorStrikeEvent implements GameEvent{}
+    class PopulationGrowthEvent implements GameEvent{}
+    class RefugeeWaveEvent implements GameEvent{}
+    class ResourceShortageEvent implements GameEvent{}
+    class RichAsteroidEvent implements GameEvent{}
+    class SolarFlareEvent implements GameEvent{}
+    class SpacePlagueEvent implements GameEvent{}
+    class StellarStormEvent implements GameEvent{}
+    class TechDiscoveryEvent implements GameEvent{}
+    class TradeEmbargoEvent implements GameEvent{}
+    EventManager o-- GameEvent : events
+    GameEvent ..> EventOption : options
+}
+
+
+
+}
+
+package "Exception" <<Frame>>{
+    exception NotEnoughSpace{}
+    exception TooManyInhabitants{}
+    exception NotEnoughResources{}
+    exception MapTileStateException{}
+    exception NotEnoughInhabitants{}
+    exception NotEnoughWorkers{}
+    exception TooManyWorkers{}
+    exception WrongBuildingType{}
+    exception WrongResourceType{}
+    exception WrongState{}
+}
+
+package "View" {
+    interface Observer{
+        + update()
+    }
+    note left of Observer
+        Design Pattern Observer
+    end note
+    class MainView implements Observer{
+        - controller : Controller
+        - cards : ArrayList<BuildingCards>
+        - topContainer : CustomMenu
+        - map : MapView
+        - model : GameModel
+        - footer : VBox
+        - buildingFooter : BuildingFooter
+        - peopleFooter : PeopleFooter
+        - root : BorderPane
+        - footerState : String
+        + setController(Controller) : void
+        + SetSelectedBuilding(BuildingType) : void
+        + SetSelectedBuildingInfo(Building) : void
+        + setAvailability() : void
+        + switchEditionMode(String) : void
+        + updateError() : void
+    }
+
+    class BuildingCard extends VBox{
+        - currentlySelected : BuildingType
+        - root : VBox
+        - buildingType : BuildingType
+        - createSpriteWithLabel(String path, String label) : VBox
+        - createSpriteWithTextRight(String path, String label) : HBox
+        + getBuildingType() : BuildingType
+        + setBackground(BuildingType) : void
+        + setSelected(BuildingType) : void
+        + createAndLinkToolTip(Building) : void
+    }
+
+    class BuildingFooter extends ScrollPane{
+        - container : HBox
+        + addWidget(javafx.scene.Node) : void
+    }
+
+    class BuildingInfoCard extends VBox{
+        - selectedBuilding : Building
+        - root : HBox
+        - createSpriteWithTextRight(String path, String label) : HBox
+        + setBackground(Building) : void
+    }
+
+    class BuildingInfoPopup{
+    }
+
+    class CustomMenu extends VBox{
+        -container : HBox
+        - resourcesLabels : HashMap<ResourceType,Label>
+        - errorBox : HBox
+        - errorLabel : Label
+        + actualiseResources() : void
+        + showError(String) : void
+    }
+
+    class ImagePath{
+        + getResourceLogoPath(ResourceType) : String
+        + getBuildingLogoPath(BuildingType) : String
+    }
+
+    class MapView extends ScrollPane{
+        - grid : GridPane
+        - buildingSprites : HashMap<Building, ArrayList<ArrayList<ImageView>>>
+        - imagePath : String
+        + drawBuildings(Set<Building>) : void
+        + eraseBuilding(Building) : void
+    }
+
+    class PeopleFooter extends VBox{
+        - inhabitantsLabel : Label
+        - workerLabel : Label
+        - cardContainer : HBox
+        - cardRoot : ScrollPane
+        -selectedBuilding : Building
+        + generateButtons() : void
+        + updateBuildings( Set<Building>) : void
+        + SetSelectedBuildingInfo(Building) : void
+    }
+
+    class ChartView{
+        + show(Stage) : void
+    }
+    class SaveManager <<(S,#FF7700)Singleton>>{
+        - instance : SaveManager
+        - {static} SAVE_DIR : String = "saves"
+        - mapper : ObjectMapper
+        + {static} getInstance() : SaveManager
+        + save(GameManager, String) : void
+        + load(GameManager, String) : void
+        + listSaves() : List<String>
+        + showLoadDialog(GameManager) : void
+    }
+    class SaveData{
+        + day : int
+        + resources : Map<String, Integer>
+        + population : int
+        + buildingCount : int
+        + researchedTechs : List<String>
+        + unlockedRecipes : List<String>
+    }
+    SaveManager +-- SaveData : 存档数据
+    class TechView{
+        + show(Stage) : void
+    }
+    class VictoryDialog{
+        + {static} show(GameManager) : void
+    }
+    class EventDialog{
+        + showAndWait() : void
+    }
+    class FxGameClock implements GameClock{
+        - timeline : Timeline
+        + start(long, Runnable) : void
+        + stop() : void
+    }
+    class FxGameUiBridge implements GameUiBridge{
+        + dispatch(Runnable) : void
+        + showWarning(String, String, String) : void
+        + showVictory() : void
+        + showEvent(GameEvent, Runnable) : void
+    }
+}
+
+package "Controller" {
+    class Controller{
+        - model GameManager
+        - view MainView
+        - bagOfCommands : BagOfCommands
+        - selectedBuilding : BuildingType
+        + changeSelectedBuilding(BuildingType)
+        + ChangeSelectedBuildingInfo(Building)
+    }
+    interface Command{
+        + execute(GameManager, Controller)
+    }
+    note left of Command
+        Design Pattern Command
+    end note
+    package Commands{
+        class AddBuildingCommand implements Command{
+        - position : Position
+        }
+        class RemoveBuildingCommand implements Command{
+            - building : Building
+        }
+        class AddInhabitantIntoCommand implements Command{
+            - building : Building
+        }
+        class RemoveInhabitantFromCommand implements Command{
+            - building : Building
+        }
+        class AddWorkerIntoCommand implements Command{
+            - building : Building
+        }
+        class RemoveWorkerFromCommand implements Command{
+            - building : Building
+        }
+        class SetSelectedBuildingCommand implements Command{
+            - type : BuildingType
+        }
+        class SetSelectedBuildingInfoCommand implements Command{
+            - type : BuildingType
+        }
+        class BlockBuildingCommand implements Command{
+            - type : BuildingType
+        }
+        class BoostBuildingCommand implements Command{
+            - type : BuildingType
+        }
+        class RepairBuildingCommand implements Command{
+            - type : BuildingType
+        }
+        class RunBuildingCommand implements Command{
+            - type : BuildingType
+        }
+        class ResearchTechCommand implements Command{
+            - techId : String
+        }
+    }
+    
+
+    class BagOfCommands  <<(S,#FF7700)Singleton>>{
+        - instance : BagOfCommands
+        - commands : ConcurrentLinkedQueue<Command>
+        - model : GameManager
+        - controller : Controller
+        - isRunning : boolean
+        - processCommands() : void
+        + getInstance() : BagOfCommands
+        + executeFirst() : void
+        + executeAll() : void
+        + addCommand(Command) : void
+        + setModel(GameManager) : void
+        + setController(Controller) : void
+    }
+    note bottom of BagOfCommands
+        Design Pattern Singleton
+        Design Pattern Bag of commands
+    end note
+}
+
+class MainApp extends Application{
+    + start(Stage) : void
+}
+class Main{
+    + main(String[]) : void
+}
+
+@enduml

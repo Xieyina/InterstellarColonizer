@@ -1,0 +1,19 @@
+{
+  "day" : 36,
+  "resources" : {
+    "STEEL" : 25,
+    "WOOD" : 44,
+    "CEMENT" : 0,
+    "COAL" : 0,
+    "LUMBER" : 0,
+    "IRON" : 0,
+    "STONE" : 45,
+    "FOOD" : 60,
+    "TOOLS" : 5
+  },
+  "population" : 3,
+  "buildingCount" : 3,
+  "researchedTechs" : [ "BASIC_FARMING", "BASIC_ENERGY" ],
+  "unlockedRecipes" : [ ],
+  "saveDate" : "2026-09-14 23:54:08"
+}
